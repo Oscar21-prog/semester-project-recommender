@@ -4,3 +4,9 @@ __pycache__/
 
 # Datasets
 *.csv
+
+# Local credentials and cache
+spotify_test.py
+.cache/
+
+.cache
