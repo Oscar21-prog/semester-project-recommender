@@ -1,0 +1,22 @@
+========================================================================
+SEMESTER PROJECT (MID-TERM VERSION 1)
+Vilnius University - Faculty of Mathematics and Informatics (MIF)
+========================================================================
+
+Author: Oscar Marin Castro
+Topic ID & Title: Topic ID 52 — Music Recommendation Information System
+Supervisor: Assist. prof. dr. Andrius Vytautas Misiukas Misiūnas
+Date: November 2026
+
+ARCHIVE STRUCTURE:
+- READ.txt: General information and overview of the submission archive.
+- doc/: Project report in PDF format, editable source document, and
+  all graphic illustrations used in the report.
+- bin/: Executable launcher script (run.sh) and quick-start instructions
+  to run the working prototype.
+- src/: Python source code (recommender.py), dataset files (data/),
+  dependency list (requirements.txt), and compilation/execution guide.
+
+SYSTEM REQUIREMENTS:
+- OS: Linux / macOS / WSL2 (Ubuntu 24.04)
+- Python 3.10+
