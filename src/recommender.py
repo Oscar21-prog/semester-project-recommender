@@ -92,8 +92,8 @@ class MusicRecommender:
         self.scaler = StandardScaler()
         feature_matrix = self.scaler.fit_transform(feature_data)
 
-        # FEATURE WEIGHTING: Assign custom weights to increase accuracy
-        # Energy and Tempo have higher influence on musical style compatibility.
+        # FEATURE WEIGHTING: Apply selected design weights to standardized features
+        # Energy and tempo receive larger weights as an experimental design choice.
         self.feature_weights = {
             "danceability": 1.2,
             "energy": 1.5,          # High weight: intensity matters
@@ -111,7 +111,10 @@ class MusicRecommender:
         self.feature_matrix = feature_matrix
 
         print(f"📦 Total unique tracks indexed: {len(self.df)}")
-        print("✅ Recommendation engine initialized and ready (with custom feature weighting)!\n")
+        print(
+            "✅ Recommendation engine initialized and ready "
+            "(with custom feature weighting)!\n"
+        )
 
     def _most_popular_index(self, indexes):
         """Select the highest-popularity track index among multiple candidates."""
@@ -151,7 +154,8 @@ class MusicRecommender:
             ):
                 row = self.df.iloc[track_index]
                 print(
-                    f"  {option_number}. {row['Track Name']} — {row['Artist Name']}"
+                    f"  {option_number}. "
+                    f"{row['Track Name']} — {row['Artist Name']}"
                 )
 
             if len(partial) > 10:
@@ -187,6 +191,32 @@ class MusicRecommender:
         indexes = self.df.index[self.df["search_key"] == candidate].tolist()
         return self._most_popular_index(indexes), "approximate match"
 
+    def _show_title_suggestions(self, song_name: str, limit: int = 5):
+        """Print the closest catalogue titles when a query is not found."""
+        query = " ".join(song_name.casefold().split())
+        if len(query) < 2:
+            return
+
+        unique_keys = self.df["search_key"].drop_duplicates().tolist()
+        suggestion_keys = difflib.get_close_matches(
+            query,
+            unique_keys,
+            n=limit,
+            cutoff=0.45,
+        )
+
+        if not suggestion_keys:
+            return
+
+        print("Closest title matches in the catalogue:")
+        for suggestion_key in suggestion_keys:
+            indexes = self.df.index[
+                self.df["search_key"] == suggestion_key
+            ].tolist()
+            suggestion_index = self._most_popular_index(indexes)
+            row = self.df.iloc[suggestion_index]
+            print(f"  - {row['Track Name']} — {row['Artist Name']}")
+
     def search_artist(self, artist_name: str, limit: int = 15):
         """List catalog tracks belonging to a given artist query."""
         query = " ".join(artist_name.casefold().split())
@@ -220,19 +250,23 @@ class MusicRecommender:
 
         if index is None:
             print(f"❌ Track '{song_name}' not found in database.")
+            self._show_title_suggestions(song_name)
             print("Tip: Use Option 2 to check existing tracks by artist.")
             return
 
         selected = self.df.iloc[index]
         print(
-            f"\n🎯 Selected track: '{selected['Track Name']}' by {selected['Artist Name']}"
+            f"\n🎯 Selected track: '{selected['Track Name']}' "
+            f"by {selected['Artist Name']}"
         )
         print(f"   Match resolution: {match_type}")
         print("🎧 Recommendations based on weighted acoustic similarity:")
 
         # Compute cosine similarity on-the-fly against the weighted feature matrix
         target_vector = self.feature_matrix[index].reshape(1, -1)
-        similarity_scores = cosine_similarity(target_vector, self.feature_matrix)[0]
+        similarity_scores = cosine_similarity(
+            target_vector, self.feature_matrix
+        )[0]
 
         # Rank all indices in descending order of similarity
         ranked_indices = similarity_scores.argsort()[::-1]
@@ -255,11 +289,10 @@ class MusicRecommender:
             seen_signatures.add(signature)
 
             score = similarity_scores[candidate_idx]
-            match_pct = round(score * 100, 1)
 
             print(
                 f"  {delivered + 1}. {row['Track Name']} — {row['Artist Name']} "
-                f"| {match_pct}% match (cosine: {score:.3f})"
+                f"| cosine similarity: {score:.3f}"
             )
 
             delivered += 1
@@ -274,7 +307,7 @@ if __name__ == "__main__":
         print("\n" + "=" * 45)
         print("MUSIC RECOMMENDER SYSTEM (CLI PROTOTYPE)")
         print("=" * 45)
-        print("1. Get recommendations from track title")
+        print("1. Get recommendations from a track title")
         print("2. Search available tracks by artist")
         print("3. Exit")
 
